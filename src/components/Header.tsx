@@ -130,6 +130,9 @@ export function HeaderView({
         </button>
       </div>
 
+      {/* Reading progress (scroll-driven; hidden where unsupported). */}
+      <div className="scroll-progress pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-walnut-light" />
+
       {/* Mobile menu */}
       <div
         className={`fixed inset-x-0 top-18 bottom-0 flex flex-col justify-between bg-bone px-5 pt-8 pb-10 text-ink transition-[opacity,visibility] duration-300 sm:px-8 lg:hidden ${

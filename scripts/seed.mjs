@@ -515,10 +515,10 @@ tx.createOrReplace({
     "21",
     "02",
   ]),
-  ctaTitulo: "Cotice su proyecto",
+  ctaTitulo: "Hablemos de su espacio",
   ctaTexto:
-    "Cuéntenos qué espacio quiere transformar y le ayudamos a definirlo.",
-  ctaBoton: "Cotizar por WhatsApp",
+    "Cuéntenos qué espacio quiere transformar. Le ayudamos a definir el diseño, los materiales y el presupuesto.",
+  ctaBoton: "Cotizar proyecto",
   ctaImagen: foto("25"),
 });
 

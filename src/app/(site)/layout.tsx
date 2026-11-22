@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Footer } from "@/components/Footer";
 import { Header, HeaderView } from "@/components/Header";
+import { ScrollFx } from "@/components/ScrollFx";
 import { WhatsAppIcon } from "@/components/ui";
 import { cotizarHref, whatsappUrl } from "@/lib/contacto";
 import { hasAsset, imageUrl } from "@/lib/image";
@@ -42,6 +43,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <span id="top" />
+      <ScrollFx />
       <Suspense
         fallback={
           <HeaderView nombre={config.nombre} cotizar={cotizarHref()} pathname={null} />

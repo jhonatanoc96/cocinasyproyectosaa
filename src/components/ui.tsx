@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Indice } from "./efectos";
 import { SanityImg } from "./SanityImg";
 import type { Foto, Pagina, ProyectoResumen } from "@/sanity/types";
 
@@ -137,17 +138,24 @@ export function SectionHead({
   texto,
   accion,
   tono = "oscuro",
+  indice,
 }: {
   etiqueta?: string;
   titulo?: string;
   texto?: string;
   accion?: ReactNode;
   tono?: "oscuro" | "claro";
+  /** Shows "01 — Etiqueta" instead of the plain eyebrow. */
+  indice?: number;
 }) {
   return (
-    <div className="reveal mb-12 flex flex-col gap-6 lg:mb-16 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mb-12 flex flex-col gap-6 lg:mb-20 lg:flex-row lg:items-end lg:justify-between">
       <div className="max-w-2xl">
-        {etiqueta && (
+        {indice && etiqueta ? (
+          <div data-fx="fade">
+            <Indice n={indice} label={etiqueta} tono={tono} />
+          </div>
+        ) : etiqueta && (
           <p
             className={`eyebrow mb-5 ${
               tono === "claro" ? "text-sand" : "text-walnut"
@@ -157,10 +165,14 @@ export function SectionHead({
           </p>
         )}
         {titulo && (
-          <h2 className="display text-[clamp(2.6rem,5vw,4.5rem)]">{titulo}</h2>
+          <h2 data-fx="blur" className="display text-[clamp(2.8rem,5.6vw,5.2rem)]">
+            {titulo}
+          </h2>
         )}
         {texto && (
           <p
+            data-fx
+            style={{ ["--d" as string]: ".1s" }}
             className={`mt-6 max-w-xl leading-relaxed ${
               tono === "claro" ? "text-bone/65" : "text-muted"
             }`}
@@ -169,7 +181,7 @@ export function SectionHead({
           </p>
         )}
       </div>
-      {accion}
+      {accion && <div data-fx="fade">{accion}</div>}
     </div>
   );
 }
@@ -200,25 +212,33 @@ export function ProyectoCard({
   proyecto,
   aspecto = "aspect-[4/5]",
   sizes = "(min-width: 1024px) 45vw, 100vw",
+  numero,
 }: {
   proyecto: ProyectoResumen;
   aspecto?: string;
   sizes?: string;
+  numero?: number;
 }) {
   return (
-    <Link href={`/proyectos/${proyecto.slug}`} className="group reveal block">
-      <div className={`relative overflow-hidden bg-stone ${aspecto}`}>
-        <SanityImg
-          foto={proyecto.portada}
-          fill
-          sizes={sizes}
-          className="transition-transform duration-[1.4s] ease-[var(--ease-out-soft)] group-hover:scale-[1.04]"
-        />
-        <span className="absolute top-4 left-4 rounded-full bg-bone/90 px-3 py-1.5 text-[0.7rem] font-semibold tracking-wide text-ink backdrop-blur">
+    <Link href={`/proyectos/${proyecto.slug}`} className="group block">
+      <div data-fx="clip" className={`relative overflow-hidden bg-stone ${aspecto}`}>
+        <div className="absolute inset-0 transition-transform duration-[1.4s] ease-[var(--ease-out-soft)] group-hover:scale-[1.05]">
+          <SanityImg foto={proyecto.portada} fill sizes={sizes} />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-transparent opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+        <span className="absolute top-4 left-4 rounded-full border border-bone/30 bg-ink/35 px-3 py-1.5 text-[0.7rem] font-semibold tracking-wide text-bone backdrop-blur-md">
           {proyecto.totalFotos} fotografías
         </span>
+        {numero !== undefined && (
+          <span className="display absolute top-3 right-5 text-5xl text-bone/90 drop-shadow-sm">
+            {String(numero).padStart(2, "0")}
+          </span>
+        )}
+        <span className="absolute bottom-5 left-5 flex translate-y-3 items-center gap-2 text-sm font-semibold text-bone opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+          Ver proyecto <Flecha />
+        </span>
       </div>
-      <div className="mt-5 flex items-start justify-between gap-6">
+      <div data-fx className="mt-5 flex items-start justify-between gap-6">
         <div className="min-w-0">
           <h3 className="display text-[1.9rem] sm:text-[2.2rem]">
             {proyecto.titulo}
@@ -253,20 +273,17 @@ export function CtaBanner({
   imagen?: Foto;
 }) {
   return (
-    <section className="relative isolate overflow-hidden bg-ink text-bone">
+    <section className="grano relative overflow-hidden bg-ink text-bone">
       {imagen && (
-        <SanityImg
-          foto={imagen}
-          fill
-          sizes="100vw"
-          className="-z-10 opacity-45"
-        />
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <SanityImg foto={imagen} fill sizes="100vw" className="parallax opacity-45" />
+        </div>
       )}
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/75 to-ink/20" />
-      <Container className="py-28 lg:py-40">
-        <div className="reveal max-w-2xl">
-          <p className="eyebrow mb-6 text-sand">Cotización</p>
-          <h2 className="display text-[clamp(3rem,6.5vw,6rem)]">
+      <Container className="relative z-[2] py-28 lg:py-40">
+        <div className="max-w-2xl">
+          <p data-fx="fade" className="eyebrow mb-6 text-sand">Cotización</p>
+          <h2 data-fx="blur" className="display text-[clamp(3rem,6.5vw,6rem)]">
             {titulo ?? "Cotice su proyecto"}
           </h2>
           {texto && (

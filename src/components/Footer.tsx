@@ -6,7 +6,7 @@ import { Anio } from "./Anio";
 import { LogoMarca } from "./Logo";
 import { Texto } from "./Pendiente";
 import { RedesSociales } from "./RedesSociales";
-import { Boton, Container, Flecha, WhatsAppIcon } from "./ui";
+import { Container, Flecha, WhatsAppIcon } from "./ui";
 
 export function Footer({
   config,
@@ -26,30 +26,8 @@ export function Footer({
   const [first, ...rest] = config.nombre.split(" y ");
 
   return (
-    <footer className="bg-ink text-bone">
-      {/* Quote band */}
-      <div className="border-b border-bone/10">
-        <Container className="flex flex-col gap-8 py-16 lg:flex-row lg:items-end lg:justify-between lg:py-20">
-          <div className="max-w-2xl">
-            <p className="eyebrow mb-5 text-sand">Cotización</p>
-            <p className="display text-[clamp(2.6rem,5vw,4.6rem)]">
-              ¿Tiene un espacio en mente?
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Boton href={cotizarHref()} variante="claro">
-              Cotizar proyecto <Flecha />
-            </Boton>
-            {wa && (
-              <Boton href={wa} externo variante="borde-claro">
-                <WhatsAppIcon /> WhatsApp
-              </Boton>
-            )}
-          </div>
-        </Container>
-      </div>
-
-      <Container className="grid gap-14 py-16 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10 lg:py-20">
+    <footer className="grano overflow-hidden bg-ink text-bone">
+      <Container className="grid gap-14 pt-20 pb-16 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10 lg:pt-28">
         {/* Brand */}
         <div className="sm:col-span-2 lg:col-span-4">
           <Link href="/" className="inline-flex items-center gap-4" aria-label={`${config.nombre} — inicio`}>
@@ -68,6 +46,17 @@ export function Footer({
               <Texto>{config.descripcion}</Texto>
             </p>
           )}
+          <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-sm font-semibold">
+            <Link href={cotizarHref()} className="group inline-flex items-center gap-2 border-b border-bone/30 pb-1 hover:border-bone">
+              Cotizar proyecto
+              <Flecha className="transition-transform group-hover:translate-x-1" />
+            </Link>
+            {wa && (
+              <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border-b border-bone/30 pb-1 hover:border-bone">
+                <WhatsAppIcon /> WhatsApp
+              </a>
+            )}
+          </div>
           <RedesSociales
             redes={config.redes}
             className="mt-8"
@@ -144,7 +133,17 @@ export function Footer({
         </div>
       </Container>
 
-      <div className="border-t border-bone/10">
+      {/* Oversized wordmark, cropped by the bottom bar. */}
+      <div aria-hidden className="pointer-events-none overflow-hidden select-none">
+        <p
+          data-fx="blur"
+          className="display -mb-[0.2em] text-center text-[clamp(3.6rem,13.5vw,15rem)] leading-[0.9] whitespace-nowrap text-bone/[0.07]"
+        >
+          {config.nombre}
+        </p>
+      </div>
+
+      <div className="relative border-t border-bone/10 bg-ink">
         <Container className="flex flex-col gap-4 py-7 text-xs text-bone/45 lg:flex-row lg:items-center lg:justify-between">
           <p>
             © <Anio /> {config.nombre}

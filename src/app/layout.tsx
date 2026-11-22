@@ -18,8 +18,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es"
       className={`${serif.variable} ${sans.variable} antialiased`}
+      // The inline script below adds "fx" before React hydrates.
+      suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        {/* Enables scroll animations before first paint (no flash of
+            visible-then-hidden content). Without JS nothing is hidden. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('fx')",
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
