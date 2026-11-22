@@ -6,7 +6,7 @@ import {
   ProyectoCard,
 } from "@/components/ui";
 import { cotizarHref } from "@/lib/contacto";
-import { getConfig, getPagina, getProyectos } from "@/sanity/data";
+import { getPagina, getProyectos } from "@/sanity/data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const pagina = await getPagina("pagina-proyectos");
@@ -14,12 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ProyectosPage() {
-  const [pagina, proyectos, config] = await Promise.all([
+  const [pagina, proyectos] = await Promise.all([
     getPagina("pagina-proyectos"),
     getProyectos(),
-    getConfig(),
   ]);
-  const cotizar = cotizarHref(config);
 
   return (
     <>
@@ -44,11 +42,8 @@ export default async function ProyectosPage() {
       <CtaBanner
         titulo="¿Tiene un proyecto en mente?"
         texto="Cuéntenos qué espacio quiere transformar."
-        boton={
-          cotizar.externo ? "Cotizar por WhatsApp" : "Solicitar cotización"
-        }
-        href={cotizar.href}
-        externo={cotizar.externo}
+        boton="Cotizar proyecto"
+        href={cotizarHref()}
       />
     </>
   );

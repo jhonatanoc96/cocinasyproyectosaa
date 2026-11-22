@@ -2,6 +2,7 @@ import { sanityFetch } from "./client";
 import {
   CATEGORIAS_QUERY,
   CONFIG_QUERY,
+  COTIZADOR_QUERY,
   FOTOS_POR_SECCION_QUERY,
   INICIO_QUERY,
   PAGINA_QUERY,
@@ -9,15 +10,19 @@ import {
   PROYECTO_VECINOS_QUERY,
   PROYECTOS_QUERY,
   PROYECTOS_SLUGS_QUERY,
+  VIDEOS_POR_SECCION_QUERY,
 } from "./queries";
 import type {
   Categoria,
   Configuracion,
+  Cotizador,
   Inicio,
   Pagina,
   Proyecto,
   ProyectoConFotos,
+  ProyectoConVideos,
   ProyectoResumen,
+  Video,
 } from "./types";
 
 const FALLBACK_CONFIG: Configuracion = { nombre: "Cocinas y Proyectos AA" };
@@ -66,4 +71,25 @@ export async function getFotosPorSeccion(
   seccion: "cocinas" | "mobiliario"
 ): Promise<ProyectoConFotos[]> {
   return sanityFetch<ProyectoConFotos[]>(FOTOS_POR_SECCION_QUERY, { seccion });
+}
+
+export async function getCotizador(): Promise<Cotizador> {
+  return (await sanityFetch<Cotizador | null>(COTIZADOR_QUERY)) ?? {};
+}
+
+/** Videos of a site section: the page's own videos first, then project videos. */
+export async function getVideosPorSeccion(
+  seccion: "cocinas" | "mobiliario",
+  propios?: Video[] | null
+): Promise<(Video & { proyecto?: { titulo: string; slug: string } })[]> {
+  const proyectos = await sanityFetch<ProyectoConVideos[]>(
+    VIDEOS_POR_SECCION_QUERY,
+    { seccion }
+  );
+  return [
+    ...(propios ?? []),
+    ...proyectos.flatMap((p) =>
+      p.videos.map((v) => ({ ...v, proyecto: { titulo: p.titulo, slug: p.slug } }))
+    ),
+  ].filter((v) => v.url);
 }

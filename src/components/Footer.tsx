@@ -1,105 +1,180 @@
 import Link from "next/link";
-import { telHref, whatsappUrl } from "@/lib/contacto";
-import type { Configuracion } from "@/sanity/types";
+import { cotizarHref, datosContacto, whatsappUrl } from "@/lib/contacto";
 import { NAV } from "@/lib/nav";
+import type { Categoria, Configuracion } from "@/sanity/types";
+import { Anio } from "./Anio";
+import { LogoMarca } from "./Logo";
+import { Texto } from "./Pendiente";
+import { RedesSociales } from "./RedesSociales";
+import { Boton, Container, Flecha, WhatsAppIcon } from "./ui";
 
-export function Footer({ config }: { config: Configuracion }) {
+export function Footer({
+  config,
+  categorias,
+}: {
+  config: Configuracion;
+  categorias: Categoria[];
+}) {
   const wa = whatsappUrl(config);
-  const datos = [
-    wa && config.whatsapp
-      ? { label: "WhatsApp", value: `+${config.whatsapp}`, href: wa }
-      : null,
-    config.telefono
-      ? {
-          label: "Teléfono",
-          value: config.telefono,
-          href: telHref(config.telefono),
-        }
-      : null,
-    config.email
-      ? { label: "Correo", value: config.email, href: `mailto:${config.email}` }
-      : null,
-    config.direccion ? { label: "Dirección", value: config.direccion } : null,
-    config.ciudad ? { label: "Cobertura", value: config.ciudad } : null,
-    config.horario ? { label: "Horario", value: config.horario } : null,
-  ].filter(
-    (d): d is { label: string; value: string; href?: string } => d !== null
-  );
-  const redes = (config.redes ?? []).filter((r) => r.url);
+  // The footer shows every contact field, placeholders included, so the
+  // client can see what is still missing.
+  const datos = datosContacto(config, true);
+  const servicios = categorias.map((c) => ({
+    href: c.seccion === "cocinas" ? "/cocinas" : `/mobiliario#${c.slug}`,
+    label: c.titulo,
+  }));
+  const [first, ...rest] = config.nombre.split(" y ");
 
   return (
     <footer className="bg-ink text-bone">
-      <div className="mx-auto max-w-[1440px] px-5 pt-20 pb-10 sm:px-8 lg:px-12">
-        <div className="grid gap-14 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <p className="display text-5xl sm:text-6xl">{config.nombre}</p>
-            {config.eslogan && (
-              <p className="mt-4 max-w-sm text-bone/60">{config.eslogan}</p>
+      {/* Quote band */}
+      <div className="border-b border-bone/10">
+        <Container className="flex flex-col gap-8 py-16 lg:flex-row lg:items-end lg:justify-between lg:py-20">
+          <div className="max-w-2xl">
+            <p className="eyebrow mb-5 text-sand">Cotización</p>
+            <p className="display text-[clamp(2.6rem,5vw,4.6rem)]">
+              ¿Tiene un espacio en mente?
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Boton href={cotizarHref()} variante="claro">
+              Cotizar proyecto <Flecha />
+            </Boton>
+            {wa && (
+              <Boton href={wa} externo variante="borde-claro">
+                <WhatsAppIcon /> WhatsApp
+              </Boton>
             )}
           </div>
+        </Container>
+      </div>
 
-          <nav className="lg:col-span-3" aria-label="Pie de página">
-            <p className="eyebrow mb-5 text-bone/40">Sitio</p>
-            <ul className="space-y-3">
-              {NAV.map((n) => (
-                <li key={n.href}>
-                  <Link
-                    href={n.href}
-                    className="text-bone/80 transition-colors hover:text-bone"
-                  >
-                    {n.label}
+      <Container className="grid gap-14 py-16 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10 lg:py-20">
+        {/* Brand */}
+        <div className="sm:col-span-2 lg:col-span-4">
+          <Link href="/" className="inline-flex items-center gap-4" aria-label={`${config.nombre} — inicio`}>
+            <LogoMarca fondo className="h-14 w-14 shrink-0 rounded-[14px] ring-1 ring-bone/15" />
+            <span className="leading-none">
+              <span className="display block text-3xl">{first}</span>
+              {rest.length > 0 && (
+                <span className="mt-1 block font-serif text-2xl italic text-bone/60">
+                  y {rest.join(" y ")}
+                </span>
+              )}
+            </span>
+          </Link>
+          {config.descripcion && (
+            <p className="mt-7 max-w-sm leading-relaxed text-bone/60">
+              <Texto>{config.descripcion}</Texto>
+            </p>
+          )}
+          <RedesSociales
+            redes={config.redes}
+            className="mt-8"
+            itemClassName="border-bone/20 text-bone/80 hover:border-bone hover:bg-bone hover:text-ink"
+          />
+        </div>
+
+        {/* Navigation */}
+        <nav className="lg:col-span-2" aria-label="Pie de página">
+          <p className="eyebrow mb-6 text-bone/40">Sitio</p>
+          <ul className="space-y-3.5">
+            <li>
+              <Link href="/" className="text-bone/75 transition-colors hover:text-bone">
+                Inicio
+              </Link>
+            </li>
+            {NAV.map((n) => (
+              <li key={n.href}>
+                <Link href={n.href} className="text-bone/75 transition-colors hover:text-bone">
+                  {n.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Services */}
+        {servicios.length > 0 && (
+          <nav className="lg:col-span-2" aria-label="Servicios">
+            <p className="eyebrow mb-6 text-bone/40">Servicios</p>
+            <ul className="space-y-3.5">
+              {servicios.map((s) => (
+                <li key={s.href}>
+                  <Link href={s.href} className="text-bone/75 transition-colors hover:text-bone">
+                    {s.label}
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
+        )}
 
-          {(datos.length > 0 || redes.length > 0) && (
-            <div className="lg:col-span-4">
-              <p className="eyebrow mb-5 text-bone/40">Contacto</p>
-              <ul className="space-y-3">
-                {datos.map((d) => (
-                  <li key={d.label} className="flex gap-4">
-                    <span className="w-24 shrink-0 text-sm text-bone/40">
-                      {d.label}
-                    </span>
+        {/* Contact */}
+        <div className="sm:col-span-2 lg:col-span-4">
+          <p className="eyebrow mb-6 text-bone/40">Contacto</p>
+          {datos.length > 0 ? (
+            <dl className="space-y-4">
+              {datos.map((d) => (
+                <div key={d.label} className="grid grid-cols-[6.5rem_1fr] gap-4">
+                  <dt className="text-sm text-bone/40">{d.label}</dt>
+                  <dd className="min-w-0 break-words text-bone/85">
                     {d.href ? (
                       <a
                         href={d.href}
-                        className="truncate text-bone/85 hover:text-bone"
+                        className="transition-colors hover:text-sand"
+                        {...(d.externo
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
                       >
                         {d.value}
                       </a>
                     ) : (
-                      <span className="text-bone/85">{d.value}</span>
+                      <Texto>{d.value}</Texto>
                     )}
-                  </li>
-                ))}
-              </ul>
-              {redes.length > 0 && (
-                <ul className="mt-6 flex flex-wrap gap-5">
-                  {redes.map((r) => (
-                    <li key={r._key}>
-                      <a
-                        href={r.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-bone/70 underline-offset-4 hover:text-bone hover:underline"
-                      >
-                        {r.red}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-bone/50">
+              <Texto>[PENDIENTE: datos de contacto]</Texto>
+            </p>
           )}
         </div>
+      </Container>
 
-        <div className="mt-20 flex flex-col gap-3 border-t border-bone/10 pt-6 text-xs text-bone/40 sm:flex-row sm:justify-between">
-          <p>© {config.nombre}</p>
-          <p>Diseño y fabricación a medida</p>
-        </div>
+      <div className="border-t border-bone/10">
+        <Container className="flex flex-col gap-4 py-7 text-xs text-bone/45 lg:flex-row lg:items-center lg:justify-between">
+          <p>
+            © <Anio /> {config.nombre}
+            {config.nit && (
+              <>
+                {" · NIT "}
+                <Texto>{config.nit}</Texto>
+              </>
+            )}
+            . Todos los derechos reservados.
+          </p>
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            <li>
+              <Link href="/terminos" className="hover:text-bone">
+                Términos y condiciones
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacidad" className="hover:text-bone">
+                Política de privacidad
+              </Link>
+            </li>
+            <li>
+              <a href="#top" className="inline-flex items-center gap-1.5 hover:text-bone">
+                Volver arriba
+                <Flecha className="h-3.5 w-3.5 -rotate-90" />
+              </a>
+            </li>
+          </ul>
+        </Container>
       </div>
     </footer>
   );

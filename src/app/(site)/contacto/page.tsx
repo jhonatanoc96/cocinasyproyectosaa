@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Texto } from "@/components/Pendiente";
+import { RedesSociales } from "@/components/RedesSociales";
 import { SanityImg } from "@/components/SanityImg";
-import { Boton, Container, WhatsAppIcon } from "@/components/ui";
-import { telHref, whatsappUrl } from "@/lib/contacto";
+import { Boton, Container, Flecha, WhatsAppIcon } from "@/components/ui";
+import { cotizarHref, datosContacto, whatsappUrl } from "@/lib/contacto";
 import { getConfig, getPagina } from "@/sanity/data";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,24 +17,7 @@ export default async function ContactoPage() {
     getConfig(),
   ]);
   const wa = whatsappUrl(config);
-  const datos = [
-    config.telefono
-      ? {
-          label: "Teléfono",
-          value: config.telefono,
-          href: telHref(config.telefono),
-        }
-      : null,
-    config.email
-      ? { label: "Correo", value: config.email, href: `mailto:${config.email}` }
-      : null,
-    config.direccion ? { label: "Dirección", value: config.direccion } : null,
-    config.ciudad ? { label: "Cobertura", value: config.ciudad } : null,
-    config.horario ? { label: "Horario", value: config.horario } : null,
-  ].filter(
-    (d): d is { label: string; value: string; href?: string } => d !== null
-  );
-  const redes = (config.redes ?? []).filter((r) => r.url);
+  const datos = datosContacto(config, true);
 
   return (
     <section className="bg-bone pt-28 pb-24 lg:pt-36 lg:pb-36">
@@ -50,13 +35,16 @@ export default async function ContactoPage() {
             </p>
           )}
 
-          {wa && (
-            <div className="mt-10">
-              <Boton href={wa} externo>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Boton href={cotizarHref()}>
+              Cotizar proyecto <Flecha />
+            </Boton>
+            {wa && (
+              <Boton href={wa} externo variante="borde">
                 <WhatsAppIcon /> Escribir por WhatsApp
               </Boton>
-            </div>
-          )}
+            )}
+          </div>
 
           {datos.length > 0 && (
             <dl className="mt-14 divide-y divide-line border-y border-line">
@@ -70,11 +58,17 @@ export default async function ContactoPage() {
                   </dt>
                   <dd className="min-w-0 text-lg break-words">
                     {d.href ? (
-                      <a href={d.href} className="hover:text-walnut">
+                      <a
+                        href={d.href}
+                        className="hover:text-walnut"
+                        {...(d.externo
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                      >
                         {d.value}
                       </a>
                     ) : (
-                      d.value
+                      <Texto>{d.value}</Texto>
                     )}
                   </dd>
                 </div>
@@ -82,22 +76,11 @@ export default async function ContactoPage() {
             </dl>
           )}
 
-          {redes.length > 0 && (
-            <ul className="mt-8 flex flex-wrap gap-6">
-              {redes.map((r) => (
-                <li key={r._key}>
-                  <a
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-semibold underline-offset-4 hover:underline"
-                  >
-                    {r.red}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          <RedesSociales
+            redes={config.redes}
+            className="mt-8"
+            itemClassName="border-ink/15 text-ink/80 hover:border-ink hover:bg-ink hover:text-bone"
+          />
         </div>
 
         {pagina?.imagen && (

@@ -14,22 +14,24 @@ npm run dev                  # http://localhost:3000  ·  CMS: http://localhost:
 
 | Sección del Studio | Qué controla |
 | --- | --- |
-| Página de inicio | Portada (3–5 fotos), presentación, proyectos destacados, cocinas, mobiliario, diferenciales, galería, llamado a cotizar |
-| Proyectos y galerías | Crear/editar proyectos, portada, galería ordenable (arrastrar), videos, destacar en inicio |
+| Página de inicio | Carrusel de portada (fotos o videos, segundos por diapositiva, autoplay), presentación, destacados, cocinas, mobiliario, diferenciales, galería, llamado a cotizar |
+| Proyectos y galerías | Visibles / Ocultos / Archivados / Todos. Cada proyecto: estado, título, textos, portada, galería ordenable, videos, destacar en inicio |
 | Tipos de trabajo | Cocinas, closets, baños, paneles… Cada uno pertenece a la sección **Cocinas** o **Mobiliario** |
-| Páginas | Textos e imagen de Cocinas, Mobiliario, Proyectos, Nosotros, Contacto |
-| Configuración del sitio | Nombre, logo, WhatsApp, teléfono, correo, dirección, horario, redes, SEO |
+| Cotizador | Textos y campos del formulario `/cotizar` y los mensajes de WhatsApp por tipo (general, cocina, mobiliario, desde un proyecto con `{proyecto}`) |
+| Páginas | Cocinas y Mobiliario (+ videos propios), Proyectos, Nosotros (historia, cifras, frase, proceso, compromisos), Contacto, Términos, Privacidad |
+| Configuración del sitio | Nombre, descripción, NIT, WhatsApp, teléfono, correo, dirección + mapa, horario, redes (solo se muestran las configuradas), SEO |
 
-Cada foto tiene **texto alternativo**, **descripción** y **tipo de trabajo**. El tipo de trabajo decide
-en qué página aparece (Cocinas o Mobiliario), así un mismo proyecto puede mezclar espacios.
-El punto de enfoque (hotspot) de cada foto controla cómo se recorta.
-
-Los cambios publicados aparecen en el sitio en ~1 minuto.
+- Cada foto y video tiene **tipo de trabajo**: decide si aparece también en Cocinas o Mobiliario.
+- Un proyecto **oculto** o **archivado** desaparece de todo el sitio (listas, inicio, Cocinas/Mobiliario, su URL da 404). Se vuelve a mostrar cambiando el estado a *Visible*.
+- Todos los botones de cotizar llevan a `/cotizar?tipo=cocina|mobiliario` o `?proyecto=…`; el formulario arma el mensaje y abre WhatsApp. Nada se guarda en el sitio.
+- Los textos con `[PENDIENTE…]` se resaltan en el sitio hasta que se reemplacen.
+- **Publicar en el Studio se ve al instante**: un webhook de Sanity llama a `/api/revalidate` (firmado con `SANITY_REVALIDATE_SECRET`), que expira la caché.
 
 ## Contenido inicial
 
 `npm run seed` (requiere `SANITY_WRITE_TOKEN`) sube las fotos y videos de `media/` y crea el contenido
-inicial. Es idempotente. La foto `media/fotos/foto-19.jpg` es una nota manuscrita con precios y
+inicial. **Reemplaza** proyectos, tipos de trabajo, inicio y páginas (no usarlo después de que el cliente
+edite); configuración, cotizador y páginas legales solo se crean si no existen. La foto `media/fotos/foto-19.jpg` es una nota manuscrita con precios y
 **no se publica** a propósito.
 
 ## Servidor (Lightsail)
@@ -42,6 +44,8 @@ inicial. Es idempotente. La foto `media/fotos/foto-19.jpg` es una nota manuscrit
 - **Desplegar:** `npm run deploy`. Compila en local (el servidor tiene 1 GB de RAM y `next build` no
   cabe) y sube el resultado. Requiere cambios commiteados y la llave `.pem` en la raíz (ignorada por git).
 - Logs: `sudo journalctl -u cocinas -f`.
+- Webhook: en sanity.io/manage → API → Webhooks, "Revalidar sitio" → `https://<dominio>/api/revalidate`.
+  Al cambiar de dominio, actualizar su URL, `NEXT_PUBLIC_SITE_URL` y los CORS.
 
 ## Pendiente antes de publicar
 

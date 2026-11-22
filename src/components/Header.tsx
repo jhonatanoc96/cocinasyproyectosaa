@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV } from "@/lib/nav";
+import { LogoMarca } from "./Logo";
 
 export interface HeaderProps {
   nombre: string;
-  cotizar: { href: string; externo: boolean };
+  cotizar: string;
 }
 
 export function Header({ nombre, cotizar }: HeaderProps) {
@@ -47,9 +48,11 @@ export function Header({ nombre, cotizar }: HeaderProps) {
       <div className="mx-auto flex h-18 max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-8 lg:h-20 lg:px-12">
         <Link
           href="/"
-          className="group flex items-baseline gap-2 leading-none"
+          className="group flex items-center gap-3 leading-none"
           aria-label={`${nombre} — inicio`}
         >
+          <LogoMarca className="h-7 w-9 shrink-0 sm:h-8 sm:w-10" />
+          <span className="flex items-baseline gap-2">
           <span className="display text-[1.55rem] sm:text-[1.75rem]">
             {first}
           </span>
@@ -58,6 +61,7 @@ export function Header({ nombre, cotizar }: HeaderProps) {
               y {rest.join(" y ")}
             </span>
           )}
+          </span>
         </Link>
 
         <nav
@@ -83,11 +87,8 @@ export function Header({ nombre, cotizar }: HeaderProps) {
               </Link>
             );
           })}
-          <a
-            href={cotizar.href}
-            {...(cotizar.externo
-              ? { target: "_blank", rel: "noopener noreferrer" }
-              : {})}
+          <Link
+            href={cotizar}
             className={`rounded-full border px-5 py-2.5 text-[0.8rem] font-semibold tracking-wide transition-colors ${
               overHero
                 ? "border-bone/50 hover:bg-bone hover:text-ink"
@@ -95,7 +96,7 @@ export function Header({ nombre, cotizar }: HeaderProps) {
             }`}
           >
             Cotizar proyecto
-          </a>
+          </Link>
         </nav>
 
         <button
@@ -138,15 +139,12 @@ export function Header({ nombre, cotizar }: HeaderProps) {
             </Link>
           ))}
         </nav>
-        <a
-          href={cotizar.href}
-          {...(cotizar.externo
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
+        <Link
+          href={cotizar}
           className="flex h-14 items-center justify-center rounded-full bg-ink text-sm font-semibold tracking-wide text-bone"
         >
           Cotizar proyecto
-        </a>
+        </Link>
       </div>
     </header>
   );

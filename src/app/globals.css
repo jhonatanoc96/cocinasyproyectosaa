@@ -78,6 +78,46 @@ body {
   }
 }
 
+@keyframes hero-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1.09);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Carousel progress bar: its animationend advances the slide. */
+.hero-progress {
+  animation-name: hero-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+.hero-kenburns {
+  animation-name: kenburns;
+  animation-timing-function: var(--ease-out-soft);
+  animation-fill-mode: both;
+}
+
+/* Text the client still has to replace: "[PENDIENTE: …]" */
+.pendiente {
+  background: color-mix(in oklab, var(--color-walnut-light) 22%, transparent);
+  color: inherit;
+  border-bottom: 1px dashed var(--color-walnut);
+  padding: 0 0.15em;
+  border-radius: 2px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
     .reveal {
@@ -112,6 +152,25 @@ body {
 }
 .prose-aa p:first-child {
   margin-top: 0;
+}
+.prose-aa h2 {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  margin-top: 1.8em;
+  line-height: 1.1;
+}
+.prose-aa ul {
+  margin-top: 1em;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.prose-aa li {
+  margin-top: 0.45em;
+  line-height: 1.7;
+}
+.prose-aa a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .prose-aa h3 {
   font-family: var(--font-serif);

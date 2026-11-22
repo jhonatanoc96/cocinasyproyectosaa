@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { WhatsAppIcon } from "@/components/ui";
 import { cotizarHref, whatsappUrl } from "@/lib/contacto";
 import { hasAsset, imageUrl } from "@/lib/image";
-import { getConfig } from "@/sanity/data";
+import { getCategorias, getConfig } from "@/sanity/data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getConfig();
@@ -32,13 +32,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: LayoutProps<"/">) {
-  const config = await getConfig();
+  const [config, cocinas, mobiliario] = await Promise.all([
+    getConfig(),
+    getCategorias("cocinas"),
+    getCategorias("mobiliario"),
+  ]);
   const wa = whatsappUrl(config);
   return (
     <>
-      <Header nombre={config.nombre} cotizar={cotizarHref(config)} />
+      <span id="top" />
+      <Header nombre={config.nombre} cotizar={cotizarHref()} />
       <main>{children}</main>
-      <Footer config={config} />
+      <Footer config={config} categorias={[...cocinas, ...mobiliario]} />
       {wa && (
         <a
           href={wa}

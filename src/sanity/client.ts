@@ -6,20 +6,22 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true,
+  // Next caches every query; the Sanity CDN would only add a second, stale layer
+  // right after publishing (the webhook revalidates and refetches immediately).
+  useCdn: false,
 });
 
 /**
- * Cached Sanity read. Content edited in the Studio shows up on the site within
- * about a minute (cacheLife "minutes"); every entry is tagged "sanity" so a
- * webhook can call revalidateTag('sanity') for instant updates later.
+ * Cached Sanity read, tagged "sanity". Publishing in the Studio fires a webhook
+ * (/api/revalidate) that expires the tag, so changes show up on the next visit.
+ * cacheLife("hours") is only a safety net in case a webhook is missed.
  */
 export async function sanityFetch<T>(
   query: string,
   params: QueryParams = {}
 ): Promise<T> {
   "use cache";
-  cacheLife("minutes");
+  cacheLife("hours");
   cacheTag("sanity");
   return client.fetch<T>(query, params);
 }

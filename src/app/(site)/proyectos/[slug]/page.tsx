@@ -4,11 +4,11 @@ import { notFound } from "next/navigation";
 import { PortableText } from "next-sanity";
 import { Galeria } from "@/components/Galeria";
 import { SanityImg } from "@/components/SanityImg";
+import { Videos } from "@/components/Videos";
 import { Container, CtaBanner, Flecha } from "@/components/ui";
 import { cotizarHref } from "@/lib/contacto";
 import { fotosData, hasAsset, imageUrl } from "@/lib/image";
 import {
-  getConfig,
   getProyecto,
   getProyectoSlugs,
   getProyectoVecinos,
@@ -38,10 +38,9 @@ export default async function ProyectoPage({
   params,
 }: PageProps<"/proyectos/[slug]">) {
   const { slug } = await params;
-  const [proyecto, vecinos, config] = await Promise.all([
+  const [proyecto, vecinos] = await Promise.all([
     getProyecto(slug),
     getProyectoVecinos(),
-    getConfig(),
   ]);
   if (!proyecto) notFound();
 
@@ -50,10 +49,7 @@ export default async function ProyectoPage({
     vecinos.length > 1 ? vecinos[(idx + 1) % vecinos.length] : null;
   const fotos = fotosData(proyecto.galeria);
   const videos = (proyecto.videos ?? []).filter((v) => v.url);
-  const cotizar = cotizarHref(
-    config,
-    `Hola, vi el proyecto "${proyecto.titulo}" y quiero cotizar algo similar.`
-  );
+  const cotizar = cotizarHref("proyecto", proyecto.titulo);
   const datos = [
     proyecto.ubicacion
       ? { label: "Ubicación", value: proyecto.ubicacion }
@@ -135,37 +131,7 @@ export default async function ProyectoPage({
         </section>
       )}
 
-      {videos.length > 0 && (
-        <section className="bg-ink py-24 text-bone lg:py-32">
-          <Container>
-            <p className="eyebrow mb-5 text-sand">En video</p>
-            <h2 className="display mb-12 text-[clamp(2.4rem,5vw,4rem)]">
-              Recorrido
-            </h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {videos.map((v) => (
-                <figure key={v._key} className="reveal">
-                  <video
-                    src={v.url}
-                    poster={
-                      hasAsset(v.poster) ? imageUrl(v.poster, 720) : undefined
-                    }
-                    controls
-                    playsInline
-                    preload="none"
-                    className="aspect-[9/16] w-full bg-graphite object-cover"
-                  />
-                  {v.titulo && (
-                    <figcaption className="mt-4 text-sm text-bone/60">
-                      {v.titulo}
-                    </figcaption>
-                  )}
-                </figure>
-              ))}
-            </div>
-          </Container>
-        </section>
-      )}
+      <Videos videos={videos} titulo="Recorrido" />
 
       {siguiente && siguiente.slug !== slug && (
         <section className="border-t border-line bg-bone">
@@ -193,11 +159,8 @@ export default async function ProyectoPage({
       <CtaBanner
         titulo="¿Quiere algo similar?"
         texto="Escríbanos y cuéntenos las medidas de su espacio."
-        boton={
-          cotizar.externo ? "Cotizar por WhatsApp" : "Solicitar cotización"
-        }
-        href={cotizar.href}
-        externo={cotizar.externo}
+        boton="Cotizar algo similar"
+        href={cotizar}
         imagen={proyecto.portada}
       />
     </>

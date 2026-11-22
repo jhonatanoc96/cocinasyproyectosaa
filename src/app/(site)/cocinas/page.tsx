@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Galeria } from "@/components/Galeria";
+import { Videos } from "@/components/Videos";
 import {
   Container,
   CtaBanner,
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui";
 import { cotizarHref } from "@/lib/contacto";
 import { fotosData } from "@/lib/image";
-import { getConfig, getFotosPorSeccion, getPagina } from "@/sanity/data";
+import { getFotosPorSeccion, getPagina, getVideosPorSeccion } from "@/sanity/data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const pagina = await getPagina("pagina-cocinas");
@@ -16,12 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CocinasPage() {
-  const [pagina, proyectos, config] = await Promise.all([
+  const [pagina, proyectos] = await Promise.all([
     getPagina("pagina-cocinas"),
     getFotosPorSeccion("cocinas"),
-    getConfig(),
   ]);
-  const cotizar = cotizarHref(config, "Hola, quiero cotizar una cocina.");
+  const videos = await getVideosPorSeccion("cocinas", pagina?.videos);
 
   return (
     <>
@@ -41,14 +41,12 @@ export default async function CocinasPage() {
           </Container>
         </section>
       ))}
+      <Videos videos={videos} titulo="Cocinas en video" />
       <CtaBanner
         titulo="Cotice su cocina"
         texto="Envíenos las medidas o fotos del espacio y le ayudamos a definir el diseño."
-        boton={
-          cotizar.externo ? "Cotizar por WhatsApp" : "Solicitar cotización"
-        }
-        href={cotizar.href}
-        externo={cotizar.externo}
+        boton="Cotizar mi cocina"
+        href={cotizarHref("cocina")}
         imagen={pagina?.imagen}
       />
     </>

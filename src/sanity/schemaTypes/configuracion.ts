@@ -26,6 +26,20 @@ export const configuracion = defineType({
       group: "marca",
     }),
     defineField({
+      name: "descripcion",
+      title: "Descripción corta de la empresa",
+      type: "text",
+      rows: 3,
+      group: "marca",
+      description: "Se muestra en el pie de página.",
+    }),
+    defineField({
+      name: "nit",
+      title: "NIT (opcional)",
+      type: "string",
+      group: "marca",
+    }),
+    defineField({
       name: "logo",
       title: "Logo (opcional)",
       type: "image",
@@ -35,7 +49,7 @@ export const configuracion = defineType({
     }),
     defineField({
       name: "whatsapp",
-      title: "WhatsApp",
+      title: "WhatsApp (número para cotizaciones)",
       type: "string",
       group: "contacto",
       description: "Con indicativo de país, solo números. Ej: 573001234567",
@@ -46,7 +60,7 @@ export const configuracion = defineType({
     }),
     defineField({
       name: "mensajeWhatsapp",
-      title: "Mensaje inicial de WhatsApp",
+      title: "Mensaje del botón flotante de WhatsApp",
       type: "string",
       group: "contacto",
     }),
@@ -69,6 +83,13 @@ export const configuracion = defineType({
       group: "contacto",
     }),
     defineField({
+      name: "mapaUrl",
+      title: "Enlace de Google Maps (opcional)",
+      type: "url",
+      group: "contacto",
+      description: "Si lo agregas, la dirección se vuelve un enlace al mapa.",
+    }),
+    defineField({
       name: "ciudad",
       title: "Ciudad / zona de cobertura",
       type: "string",
@@ -85,6 +106,7 @@ export const configuracion = defineType({
       title: "Redes sociales",
       type: "array",
       group: "contacto",
+      description: "Solo se muestran las redes que agregues.",
       of: [
         defineArrayMember({
           type: "object",
@@ -101,10 +123,18 @@ export const configuracion = defineType({
                   "TikTok",
                   "YouTube",
                   "Pinterest",
+                  "LinkedIn",
+                  "X",
                 ],
               },
+              validation: (rule) => rule.required(),
             }),
-            defineField({ name: "url", title: "Enlace", type: "url" }),
+            defineField({
+              name: "url",
+              title: "Enlace",
+              type: "url",
+              validation: (rule) => rule.required(),
+            }),
           ],
           preview: { select: { title: "red", subtitle: "url" } },
         }),

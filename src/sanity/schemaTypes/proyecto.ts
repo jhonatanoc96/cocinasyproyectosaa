@@ -13,6 +13,24 @@ export const proyecto = defineType({
   ],
   fields: [
     defineField({
+      name: "estado",
+      title: "Estado",
+      type: "string",
+      group: "contenido",
+      options: {
+        list: [
+          { title: "Visible en el sitio", value: "visible" },
+          { title: "Oculto (no aparece en el sitio)", value: "oculto" },
+          { title: "Archivado", value: "archivado" },
+        ],
+        layout: "radio",
+      },
+      description:
+        "Oculto y archivado no aparecen en el sitio. Archivado además lo saca de la lista principal del CMS. Puedes volver a mostrarlo cuando quieras.",
+      initialValue: "visible",
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: "titulo",
       title: "Título",
       type: "string",
@@ -84,29 +102,7 @@ export const proyecto = defineType({
       title: "Videos",
       type: "array",
       group: "galeria",
-      of: [
-        defineArrayMember({
-          type: "object",
-          name: "video",
-          title: "Video",
-          fields: [
-            defineField({
-              name: "archivo",
-              title: "Archivo de video (mp4)",
-              type: "file",
-              options: { accept: "video/mp4,video/webm,video/quicktime" },
-              validation: (rule) => rule.required(),
-            }),
-            defineField({ name: "titulo", title: "Título", type: "string" }),
-            defineField({
-              name: "poster",
-              title: "Imagen de vista previa",
-              type: "image",
-            }),
-          ],
-          preview: { select: { title: "titulo", media: "poster" } },
-        }),
-      ],
+      of: [defineArrayMember({ type: "video" })],
     }),
     defineField({
       name: "categorias",
@@ -139,13 +135,18 @@ export const proyecto = defineType({
       media: "portada",
       destacado: "destacado",
       fotos: "galeria",
+      estado: "estado",
     },
-    prepare: ({ title, media, destacado, fotos }) => ({
+    prepare: ({ title, media, destacado, fotos, estado }) => ({
       title,
       media,
-      subtitle: `${Array.isArray(fotos) ? fotos.length : 0} fotos${
-        destacado ? " · ★ Destacado" : ""
-      }`,
+      subtitle: [
+        estado === "oculto" ? "Oculto" : estado === "archivado" ? "Archivado" : null,
+        `${Array.isArray(fotos) ? fotos.length : 0} fotos`,
+        destacado ? "★ Destacado" : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
     }),
   },
 });

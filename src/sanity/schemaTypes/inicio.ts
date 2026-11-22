@@ -47,15 +47,103 @@ export const inicio = defineType({
       rows: 2,
       group: "hero",
     }),
-    {
-      ...fotos(
-        "heroImagenes",
-        "Fotografías de portada",
-        "De 3 a 5. En computador se ven las 3 primeras lado a lado; en celular rotan todas."
-      ),
+    defineField({
+      name: "heroSlides",
+      title: "Carrusel de portada",
+      type: "array",
       group: "hero",
-      validation: (rule) => rule.max(5),
-    },
+      description:
+        "Fotos o videos que rotan en la portada. Arrastra para cambiar el orden; la primera es la que carga primero.",
+      validation: (rule) => rule.min(1).max(10),
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "slide",
+          title: "Diapositiva",
+          fields: [
+            defineField({
+              name: "tipo",
+              title: "Tipo",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Foto", value: "imagen" },
+                  { title: "Video", value: "video" },
+                ],
+                layout: "radio",
+                direction: "horizontal",
+              },
+              initialValue: "imagen",
+            }),
+            defineField({
+              name: "imagen",
+              title: "Foto",
+              type: "fotografia",
+              hidden: ({ parent }) => parent?.tipo === "video",
+              validation: (rule) =>
+                rule.custom((value, ctx) =>
+                  (ctx.parent as { tipo?: string })?.tipo !== "video" && !value
+                    ? "Sube una foto"
+                    : true
+                ),
+            }),
+            defineField({
+              name: "video",
+              title: "Video (mp4)",
+              type: "file",
+              options: { accept: "video/mp4,video/webm" },
+              description:
+                "Se reproduce sin sonido y en bucle. Usa videos cortos y livianos (ideal: menos de 15 MB).",
+              hidden: ({ parent }) => parent?.tipo !== "video",
+              validation: (rule) =>
+                rule.custom((value, ctx) =>
+                  (ctx.parent as { tipo?: string })?.tipo === "video" && !value
+                    ? "Sube un video"
+                    : true
+                ),
+            }),
+            defineField({
+              name: "poster",
+              title: "Imagen mientras carga el video",
+              type: "image",
+              options: { hotspot: true },
+              description: "Recomendada: se ve mientras el video carga.",
+              hidden: ({ parent }) => parent?.tipo !== "video",
+            }),
+          ],
+          preview: {
+            select: {
+              tipo: "tipo",
+              imagen: "imagen",
+              alt: "imagen.alt",
+              poster: "poster",
+            },
+            prepare: ({ tipo, imagen, alt, poster }) => ({
+              title: tipo === "video" ? "Video" : alt || "Foto",
+              subtitle: tipo === "video" ? "Video" : "Foto",
+              media: tipo === "video" ? poster : imagen,
+            }),
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "heroIntervalo",
+      title: "Segundos por diapositiva",
+      type: "number",
+      group: "hero",
+      description:
+        "Cada cuánto cambia. Los videos se muestran completos (hasta 30 s).",
+      initialValue: 6,
+      validation: (rule) => rule.min(3).max(20),
+    }),
+    defineField({
+      name: "heroAutoplay",
+      title: "Cambiar automáticamente",
+      type: "boolean",
+      group: "hero",
+      initialValue: true,
+    }),
 
     // Presentación
     defineField({

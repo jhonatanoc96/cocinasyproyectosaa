@@ -1,7 +1,9 @@
 /**
  * Uploads the client's real photos/videos (media/) to Sanity and creates the
  * initial content: work categories, projects with their galleries, home page,
- * inner pages and site settings. Idempotent: fixed document IDs + Sanity
+ * inner pages, site settings, quote form and legal pages.
+ * Projects, categories, home and inner pages are REPLACED; settings, quote form
+ * and legal pages are only created if missing (CMS edits are kept). Idempotent: fixed document IDs + Sanity
  * de-duplicates assets by hash, so it can be re-run safely.
  *
  *   SANITY_WRITE_TOKEN=... npm run seed
@@ -247,6 +249,7 @@ const PROYECTOS = [
       {
         file: "video-01.mp4",
         poster: "video-01-poster.png",
+        cat: "cat-closets",
         titulo: "Recorrido por el vestidor",
       },
     ],
@@ -268,6 +271,7 @@ const PROYECTOS = [
       {
         file: "video-02.mp4",
         poster: "video-02-poster.png",
+        cat: "cat-paneles",
         titulo: "Detalle del cielo en madera",
       },
     ],
@@ -355,13 +359,32 @@ function foto(n, withKey = false) {
 }
 const fotos = (list) => list.map((n) => foto(n, true));
 
-const block = (text) => ({
+const block = (text, style = "normal") => ({
   _type: "block",
   _key: key(),
-  style: "normal",
+  style,
   markDefs: [],
   children: [{ _type: "span", _key: key(), text, marks: [] }],
 });
+const h2 = (text) => block(text, "h2");
+const h3 = (text) => block(text, "h3");
+const li = (text) => ({ ...block(text), listItem: "bullet", level: 1 });
+/** Paragraph with one internal link: [before, linkText, href, after]. */
+const blockLink = (antes, texto, href, despues = "") => {
+  const mk = key();
+  return {
+    _type: "block",
+    _key: key(),
+    style: "normal",
+    markDefs: [{ _type: "link", _key: mk, href }],
+    children: [
+      { _type: "span", _key: key(), text: antes, marks: [] },
+      { _type: "span", _key: key(), text: texto, marks: [mk] },
+      { _type: "span", _key: key(), text: despues, marks: [] },
+    ],
+  };
+};
+const item = (titulo, texto) => ({ _key: key(), titulo, texto });
 
 // ── Run ─────────────────────────────────────────────────────────────────────
 console.log("Subiendo fotografías…");
@@ -416,6 +439,7 @@ for (const p of PROYECTOS) {
     slug: { _type: "slug", current: p.slug },
     resumen: p.resumen,
     descripcion: p.descripcion.map(block),
+    estado: "visible",
     orden: p.orden,
     destacado: p.destacado,
     portada: foto(p.portada),
@@ -429,6 +453,8 @@ for (const p of PROYECTOS) {
       _type: "video",
       _key: key(),
       titulo: v.titulo,
+      formato: "vertical",
+      categoria: { _type: "reference", _ref: v.cat },
       archivo: {
         _type: "file",
         asset: { _type: "reference", _ref: videoAssets[v.file].file },
@@ -448,7 +474,14 @@ tx.createOrReplace({
   heroTitulo: "Cocinas y mobiliario hechos para su espacio.",
   heroTexto:
     "Cocinas integrales, closets, vestidores y carpintería arquitectónica fabricados a la medida.",
-  heroImagenes: fotos(["22", "30", "08", "29", "25"]),
+  heroSlides: ["22", "30", "08", "29", "25"].map((n) => ({
+    _type: "slide",
+    _key: key(),
+    tipo: "imagen",
+    imagen: foto(n),
+  })),
+  heroIntervalo: 6,
+  heroAutoplay: true,
   presEtiqueta: "Cocinas y Proyectos AA",
   presTitulo:
     "Cada mueble se diseña y fabrica para el lugar exacto donde va a vivir.",
@@ -517,19 +550,66 @@ const paginas = [
   {
     id: "pagina-nosotros",
     etiqueta: "Nosotros",
-    titulo: "Diseño y fabricación a medida",
+    titulo: "Espacios hechos a la medida de quien los habita",
     intro:
-      "Cocinas y Proyectos AA diseña y fabrica cocinas, closets y mobiliario a la medida de cada espacio.",
+      "Cocinas y Proyectos AA diseña y fabrica cocinas, closets y mobiliario a medida. Cada pieza se piensa para el lugar exacto donde va a vivir.",
     imagen: foto("26"),
     texto: [
+      h3("Nuestra historia"),
       block(
-        "Nuestro trabajo abarca cocinas integrales, closets y vestidores, muebles de baño, estudios, revestimientos en madera y puertas."
+        "Cocinas y Proyectos AA nació en [PENDIENTE: año de fundación] en [PENDIENTE: ciudad], con una idea sencilla: un buen mueble empieza por entender el espacio y a las personas que lo van a usar."
       ),
       block(
-        "Cada proyecto se fabrica según las medidas y necesidades del espacio, con la distribución interior que el cliente requiere."
+        "Hoy diseñamos y fabricamos cocinas integrales, closets y vestidores, muebles de baño, estudios, revestimientos en madera y puertas, y acompañamos cada proyecto desde la primera medida hasta la instalación final."
+      ),
+      block(
+        "[PENDIENTE: breve reseña del equipo o de quien dirige la empresa: trayectoria, formación y lo que distingue su trabajo.]"
       ),
     ],
     imagenes: fotos(["17", "28"]),
+    cifras: [
+      { _key: key(), valor: "[PENDIENTE]", etiqueta: "Años de experiencia" },
+      { _key: key(), valor: "[PENDIENTE]", etiqueta: "Proyectos entregados" },
+      { _key: key(), valor: "100%", etiqueta: "Fabricación a medida" },
+      { _key: key(), valor: "[PENDIENTE]", etiqueta: "Ciudades atendidas" },
+    ],
+    cita: "[PENDIENTE: frase que resuma la forma de trabajar de Cocinas y Proyectos AA.]",
+    citaAutor: "[PENDIENTE: nombre y cargo]",
+    procesoTitulo: "Cómo trabajamos",
+    proceso: [
+      item(
+        "Visita y medidas",
+        "Conocemos el espacio, tomamos medidas exactas y escuchamos cómo se va a usar."
+      ),
+      item(
+        "Diseño y propuesta",
+        "Definimos distribución, materiales y acabados, y presentamos una propuesta clara de alcance, tiempos y valor."
+      ),
+      item(
+        "Fabricación",
+        "Producimos cada pieza a medida [PENDIENTE: en taller propio o con aliados], cuidando cortes, cantos y herrajes."
+      ),
+      item(
+        "Instalación y entrega",
+        "Instalamos, ajustamos cada detalle y entregamos el espacio limpio y listo para usar."
+      ),
+    ],
+    valoresTitulo: "Nuestro compromiso",
+    valores: [
+      item(
+        "Medida exacta",
+        "Cada mueble se diseña para el lugar donde va a vivir: de piso a techo y sin espacios desperdiciados."
+      ),
+      item(
+        "Materiales y herrajes",
+        "[PENDIENTE: materiales y marcas de herrajes con los que se trabaja, por ejemplo tableros, enchapes y bisagras de cierre lento.]"
+      ),
+      item("Garantía", "[PENDIENTE: tiempo y condiciones de la garantía.]"),
+      item(
+        "Cumplimiento",
+        "[PENDIENTE: compromiso de tiempos de entrega y forma de seguimiento del proyecto.]"
+      ),
+    ],
   },
   {
     id: "pagina-contacto",
@@ -542,6 +622,191 @@ const paginas = [
 ];
 for (const pg of paginas)
   tx.createOrReplace({ _type: "pagina", ...pg, _id: pg.id });
+
+// ── Legal pages (created once; later edits in the CMS are kept) ─────────────
+const IDENTIFICACION =
+  "Cocinas y Proyectos AA ([PENDIENTE: razón social]), identificada con NIT [PENDIENTE], con domicilio en [PENDIENTE: dirección y ciudad], correo electrónico [PENDIENTE] y teléfono [PENDIENTE].";
+
+tx.createIfNotExists({
+  _id: "pagina-privacidad",
+  _type: "pagina",
+  etiqueta: "Legal",
+  titulo: "Política de privacidad y tratamiento de datos personales",
+  actualizado: "2026-11-22",
+  intro:
+    "Esta política explica cómo Cocinas y Proyectos AA recolecta, usa y protege los datos personales de quienes visitan este sitio o solicitan una cotización.",
+  texto: [
+    h2("1. Responsable del tratamiento"),
+    block(IDENTIFICACION),
+    h2("2. Marco legal"),
+    block(
+      "Esta política se rige por la Ley 1581 de 2012, el Decreto 1377 de 2013 (compilado en el Decreto 1074 de 2015) y las demás normas colombianas sobre protección de datos personales."
+    ),
+    h2("3. Datos que recolectamos"),
+    block(
+      "Cocinas y Proyectos AA solo trata los datos que el titular entrega de forma libre y voluntaria:"
+    ),
+    li(
+      "Datos del formulario de cotización: nombre, teléfono, correo electrónico, ciudad o barrio, medidas aproximadas y el mensaje que el titular decida escribir. Ninguno de estos campos es obligatorio."
+    ),
+    li(
+      "Datos que el titular comparta por WhatsApp, teléfono o correo durante la conversación, como fotografías o planos del espacio."
+    ),
+    li(
+      "Datos técnicos mínimos de navegación (dirección IP, tipo de navegador y fecha de acceso) que el servidor registra por seguridad y funcionamiento del sitio."
+    ),
+    block(
+      "El formulario de cotización no guarda información en este sitio: al continuar, los datos se incluyen en un mensaje de WhatsApp que el titular revisa y decide enviar. Este sitio no usa cookies de publicidad ni de seguimiento."
+    ),
+    h2("4. Finalidades del tratamiento"),
+    li("Responder solicitudes de información y cotización."),
+    li("Coordinar visitas, tomar medidas y elaborar propuestas de diseño."),
+    li("Ejecutar, hacer seguimiento y dar garantía a los proyectos contratados."),
+    li("Cumplir obligaciones legales, contables y tributarias."),
+    li(
+      "Enviar información comercial sobre productos y servicios, únicamente cuando el titular lo haya autorizado."
+    ),
+    h2("5. Servicios de terceros"),
+    block(
+      "Las conversaciones por WhatsApp se realizan a través de un servicio de un tercero (WhatsApp, de Meta Platforms). El tratamiento que ese servicio hace de los datos se rige por sus propias políticas de privacidad."
+    ),
+    h2("6. Derechos del titular"),
+    block("De acuerdo con la ley, el titular de los datos puede:"),
+    li("Conocer, actualizar y rectificar sus datos personales."),
+    li("Solicitar prueba de la autorización otorgada."),
+    li("Ser informado sobre el uso que se ha dado a sus datos."),
+    li(
+      "Revocar la autorización o solicitar la supresión de sus datos cuando no exista un deber legal o contractual de conservarlos."
+    ),
+    li("Acceder de forma gratuita a sus datos personales."),
+    li(
+      "Presentar quejas ante la Superintendencia de Industria y Comercio por infracciones a la ley."
+    ),
+    h2("7. Consultas y reclamos"),
+    block(
+      "Para ejercer sus derechos, el titular puede escribir a [PENDIENTE: correo electrónico para datos personales], indicando su nombre, la solicitud y un medio de contacto."
+    ),
+    block(
+      "Las consultas se responden en un plazo máximo de diez (10) días hábiles y los reclamos en un plazo máximo de quince (15) días hábiles, prorrogables en los términos de la Ley 1581 de 2012."
+    ),
+    h2("8. Seguridad y conservación"),
+    block(
+      "Cocinas y Proyectos AA adopta medidas razonables para proteger los datos contra acceso, uso o divulgación no autorizados. Los datos se conservan durante el tiempo necesario para cumplir las finalidades descritas y las obligaciones legales: [PENDIENTE: plazo de conservación]."
+    ),
+    h2("9. Menores de edad"),
+    block(
+      "Este sitio no está dirigido a menores de edad y Cocinas y Proyectos AA no recolecta intencionalmente datos de menores."
+    ),
+    h2("10. Vigencia y cambios"),
+    block(
+      "Esta política rige desde el [PENDIENTE: fecha de entrada en vigencia]. Cualquier cambio se publicará en esta página con su fecha de actualización."
+    ),
+  ],
+});
+
+tx.createIfNotExists({
+  _id: "pagina-terminos",
+  _type: "pagina",
+  etiqueta: "Legal",
+  titulo: "Términos y condiciones de uso",
+  actualizado: "2026-11-22",
+  intro:
+    "Estos términos regulan el uso del sitio web de Cocinas y Proyectos AA. Al navegarlo o solicitar una cotización, el usuario los acepta.",
+  texto: [
+    h2("1. Identificación"),
+    block(`Este sitio web es operado por ${IDENTIFICACION}`),
+    h2("2. Objeto del sitio"),
+    block(
+      "El sitio presenta los servicios y trabajos realizados por Cocinas y Proyectos AA y permite solicitar cotizaciones de cocinas, mobiliario y proyectos a medida."
+    ),
+    h2("3. Cotizaciones"),
+    block(
+      "Las solicitudes enviadas desde el sitio o por WhatsApp no constituyen una oferta ni un contrato. Los valores, plazos, materiales y condiciones de cada proyecto se definen en una propuesta escrita, normalmente después de una visita y toma de medidas."
+    ),
+    block("Vigencia de las cotizaciones: [PENDIENTE: número de días]."),
+    h2("4. Imágenes y referencias"),
+    block(
+      "Las fotografías y videos corresponden a proyectos realizados por Cocinas y Proyectos AA y se muestran como referencia. Los colores y texturas pueden variar según la pantalla y el lote de los materiales. Cada proyecto se diseña y fabrica a la medida de su espacio."
+    ),
+    h2("5. Propiedad intelectual"),
+    block(
+      "La marca, el logotipo, los textos, las fotografías, los videos y el diseño de este sitio pertenecen a Cocinas y Proyectos AA o se usan con autorización. No pueden reproducirse, distribuirse ni modificarse sin autorización previa y por escrito."
+    ),
+    h2("6. Uso adecuado"),
+    block(
+      "El usuario se compromete a usar el sitio de forma lícita y a no realizar acciones que afecten su funcionamiento, su seguridad o los derechos de terceros."
+    ),
+    h2("7. Enlaces a terceros"),
+    block(
+      "El sitio incluye enlaces a servicios de terceros, como WhatsApp y redes sociales. Cocinas y Proyectos AA no controla ni se hace responsable del contenido ni de las políticas de esos servicios."
+    ),
+    h2("8. Garantía de los trabajos"),
+    block(
+      "Las condiciones de garantía de cada proyecto se establecen en la propuesta o contrato correspondiente, de acuerdo con el Estatuto del Consumidor (Ley 1480 de 2011): [PENDIENTE: condiciones generales de garantía]."
+    ),
+    h2("9. Responsabilidad"),
+    block(
+      "Cocinas y Proyectos AA procura que la información del sitio sea precisa y esté actualizada, pero no garantiza que esté libre de errores ni que el sitio esté disponible de forma ininterrumpida."
+    ),
+    h2("10. Datos personales"),
+    blockLink(
+      "El tratamiento de los datos personales se rige por la ",
+      "Política de privacidad",
+      "/privacidad",
+      " de Cocinas y Proyectos AA."
+    ),
+    h2("11. Ley aplicable"),
+    block(
+      "Estos términos se rigen por las leyes de la República de Colombia. Cualquier controversia se someterá a los jueces competentes de [PENDIENTE: ciudad]."
+    ),
+    h2("12. Cambios a estos términos"),
+    block(
+      "Cocinas y Proyectos AA puede actualizar estos términos en cualquier momento. La versión vigente es la publicada en esta página."
+    ),
+  ],
+});
+
+// ── Quote form (created once; later edits in the CMS are kept) ──────────────
+const campo = (etiqueta, tipo, placeholder, ancho = "medio") => ({
+  _type: "campo",
+  _key: key(),
+  etiqueta,
+  tipo,
+  placeholder,
+  ancho,
+});
+tx.createIfNotExists({
+  _id: "cotizador",
+  _type: "cotizador",
+  etiqueta: "Cotización",
+  titulo: "Cotice su proyecto",
+  intro:
+    "Cuéntenos qué quiere hacer. Con estos datos preparamos su mensaje de WhatsApp para responderle lo antes posible.",
+  imagen: foto("15"),
+  etiquetaTipo: "¿Qué quiere cotizar?",
+  opcionCocina: "Cocina",
+  opcionMobiliario: "Mobiliario",
+  opcionGeneral: "Otro proyecto",
+  textoBoton: "Continuar en WhatsApp",
+  nota: "Ningún dato es obligatorio. Al continuar se abre WhatsApp con su mensaje listo para enviar; nada se guarda en este sitio.",
+  mensajeGeneral: "Hola, quiero cotizar un proyecto con Cocinas y Proyectos AA.",
+  mensajeCocina:
+    "Hola, quiero cotizar una cocina a medida con Cocinas y Proyectos AA.",
+  mensajeMobiliario:
+    "Hola, quiero cotizar mobiliario a medida (closet, vestidor, mueble de baño u otro) con Cocinas y Proyectos AA.",
+  mensajeProyecto:
+    'Hola, vi el proyecto "{proyecto}" en su sitio web y quiero cotizar algo similar.',
+  encabezadoDatos: "Mis datos:",
+  campos: [
+    campo("Nombre", "texto", "Su nombre"),
+    campo("Teléfono", "telefono", "Para devolverle la llamada"),
+    campo("Correo", "correo", "nombre@correo.com"),
+    campo("Ciudad o barrio", "texto", "¿Dónde está el espacio?"),
+    campo("Medidas aproximadas", "texto", "Ej: cocina en L de 3 × 2,5 m", "completo"),
+    campo("Mensaje", "parrafo", "Cuéntenos qué tiene en mente", "completo"),
+  ],
+});
+
 
 tx.createIfNotExists({
   _id: "configuracion",
@@ -559,6 +824,22 @@ tx.createIfNotExists({
 });
 
 await tx.commit();
+
+// Contact fields the client still has to provide: shown as "[PENDIENTE]" in
+// the footer and contact page until replaced in "Configuración del sitio".
+await client
+  .patch("configuracion")
+  .setIfMissing({
+    descripcion:
+      "Diseño y fabricación de cocinas integrales, closets, vestidores y mobiliario a medida.",
+    telefono: "[PENDIENTE]",
+    email: "[PENDIENTE]",
+    direccion: "[PENDIENTE]",
+    ciudad: "[PENDIENTE]",
+    horario: "[PENDIENTE]",
+    nit: "[PENDIENTE]",
+  })
+  .commit();
 console.log(
   `Listo: ${Object.keys(FOTOS).length} fotos, ${
     Object.keys(videoAssets).length

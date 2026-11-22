@@ -25,8 +25,45 @@ export interface Foto {
 export interface Video {
   _key: string;
   titulo?: string;
+  formato?: "vertical" | "horizontal";
   url?: string;
   poster?: Foto;
+  categoria?: { _id: string; titulo: string; seccion: string } | null;
+}
+
+export interface HeroSlide {
+  _key: string;
+  tipo?: "imagen" | "video";
+  imagen?: Foto;
+  video?: string | null;
+  poster?: Foto;
+}
+
+export interface CampoCotizador {
+  _key: string;
+  etiqueta: string;
+  tipo?: "texto" | "telefono" | "correo" | "parrafo";
+  placeholder?: string;
+  ancho?: "medio" | "completo";
+}
+
+export interface Cotizador {
+  etiqueta?: string;
+  titulo?: string;
+  intro?: string;
+  imagen?: Foto;
+  etiquetaTipo?: string;
+  opcionCocina?: string;
+  opcionMobiliario?: string;
+  opcionGeneral?: string;
+  textoBoton?: string;
+  nota?: string;
+  mensajeGeneral?: string;
+  mensajeCocina?: string;
+  mensajeMobiliario?: string;
+  mensajeProyecto?: string;
+  encabezadoDatos?: string;
+  campos?: CampoCotizador[];
 }
 
 export interface Categoria {
@@ -66,6 +103,9 @@ export interface ProyectoConFotos {
 export interface Configuracion {
   nombre: string;
   eslogan?: string;
+  descripcion?: string;
+  nit?: string;
+  mapaUrl?: string;
   logo?: Foto;
   whatsapp?: string;
   mensajeWhatsapp?: string;
@@ -83,7 +123,9 @@ export interface Inicio {
   heroEtiqueta?: string;
   heroTitulo?: string;
   heroTexto?: string;
-  heroImagenes?: Foto[];
+  heroSlides?: HeroSlide[];
+  heroIntervalo?: number;
+  heroAutoplay?: boolean;
   presEtiqueta?: string;
   presTitulo?: string;
   presTexto?: string;
@@ -114,4 +156,19 @@ export interface Pagina {
   imagen?: Foto;
   texto?: PortableTextBlock[];
   imagenes?: Foto[];
+  videos?: Video[];
+  actualizado?: string;
+  cifras?: { _key: string; valor?: string; etiqueta?: string }[];
+  cita?: string;
+  citaAutor?: string;
+  procesoTitulo?: string;
+  proceso?: { _key: string; titulo?: string; texto?: string }[];
+  valoresTitulo?: string;
+  valores?: { _key: string; titulo?: string; texto?: string }[];
+}
+
+export interface ProyectoConVideos {
+  titulo: string;
+  slug: string;
+  videos: Video[];
 }

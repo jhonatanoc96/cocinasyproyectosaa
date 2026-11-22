@@ -1,5 +1,5 @@
 import { Galeria } from "@/components/Galeria";
-import { HeroRotator } from "@/components/HeroRotator";
+import { HeroCarousel, type SlideData } from "@/components/HeroCarousel";
 import {
   MobiliarioIndex,
   type LineaMobiliario,
@@ -13,9 +13,8 @@ import {
   Flecha,
   ProyectoCard,
   SectionHead,
-  WhatsAppIcon,
 } from "@/components/ui";
-import { cotizarHref, telHref, whatsappUrl } from "@/lib/contacto";
+import { cotizarHref, datosContacto, type DatoContacto } from "@/lib/contacto";
 import { fotosData, hasAsset, toFotoData } from "@/lib/image";
 import { getCategorias, getConfig, getInicio } from "@/sanity/data";
 
@@ -25,9 +24,25 @@ export default async function HomePage() {
     getConfig(),
     getCategorias("mobiliario"),
   ]);
-  const cotizar = cotizarHref(config);
-  const hero = fotosData(inicio.heroImagenes);
-  const heroDesktop = (inicio.heroImagenes ?? []).filter(hasAsset).slice(0, 3);
+  const cotizar = cotizarHref();
+  const slides: SlideData[] = (inicio.heroSlides ?? []).flatMap(
+    (s, i): SlideData[] => {
+      if (s.tipo === "video") {
+        if (!s.video) return [];
+        return [
+          {
+            key: s._key,
+            tipo: "video",
+            src: s.video,
+            poster: hasAsset(s.poster) ? toFotoData(s.poster, i) : undefined,
+          },
+        ];
+      }
+      return hasAsset(s.imagen)
+        ? [{ key: s._key, tipo: "imagen", foto: toFotoData(s.imagen, i) }]
+        : [];
+    }
+  );
   const proyectos = inicio.proyectos ?? [];
   const cocinas = (inicio.cocImagenes ?? []).filter(hasAsset);
   const lineas: LineaMobiliario[] = lineasMob.map((c) => ({
@@ -38,33 +53,21 @@ export default async function HomePage() {
     foto: hasAsset(c.imagen) ? toFotoData(c.imagen) : null,
   }));
   const diferenciales = (inicio.diferenciales ?? []).filter((d) => d.titulo);
-  const wa = whatsappUrl(config);
 
   return (
     <>
       {/* 1 · Hero ------------------------------------------------------- */}
       <section className="relative isolate h-[100svh] min-h-[620px] overflow-hidden bg-ink text-bone">
-        <div className="absolute inset-0 lg:hidden">
-          <HeroRotator fotos={hero} />
-        </div>
-        <div className="absolute inset-0 hidden grid-cols-3 gap-[3px] lg:grid">
-          {heroDesktop.map((f, i) => (
-            <div key={f._key ?? i} className="relative overflow-hidden">
-              <SanityImg
-                foto={f}
-                fill
-                priority
-                sizes="34vw"
-                className="hero-img"
-              />
-            </div>
-          ))}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/45 to-ink/25" />
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-ink/60 to-transparent" />
+        <HeroCarousel
+          slides={slides}
+          intervalo={inicio.heroIntervalo ?? 6}
+          autoplay={inicio.heroAutoplay ?? true}
+        />
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-ink via-ink/40 to-ink/15" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-40 bg-gradient-to-b from-ink/60 to-transparent" />
 
-        <Container className="relative flex h-full flex-col justify-end pb-16 lg:pb-20">
-          <div className="hero-copy max-w-4xl">
+        <Container className="pointer-events-none relative z-[3] flex h-full flex-col justify-end pb-24 lg:pb-28">
+          <div className="hero-copy pointer-events-auto max-w-4xl">
             {inicio.heroEtiqueta && (
               <p className="eyebrow mb-6 text-sand">{inicio.heroEtiqueta}</p>
             )}
@@ -80,13 +83,8 @@ export default async function HomePage() {
               <Boton href="/proyectos" variante="claro">
                 Ver proyectos <Flecha />
               </Boton>
-              <Boton
-                href={cotizar.href}
-                externo={cotizar.externo}
-                variante="borde-claro"
-              >
-                {cotizar.externo && <WhatsAppIcon />}
-                Cotizar
+              <Boton href={cotizar} variante="borde-claro">
+                Cotizar proyecto
               </Boton>
             </div>
           </div>
@@ -281,47 +279,18 @@ export default async function HomePage() {
       <CtaBanner
         titulo={inicio.ctaTitulo}
         texto={inicio.ctaTexto}
-        boton={wa ? inicio.ctaBoton : "Solicitar cotización"}
-        href={cotizar.href}
-        externo={cotizar.externo}
+        boton={inicio.ctaBoton || "Cotizar proyecto"}
+        href={cotizar}
         imagen={inicio.ctaImagen}
       />
 
       {/* 9 · Contacto (only the data that exists in the CMS) ------------- */}
-      <ContactoResumen
-        datos={[
-          wa && config.whatsapp
-            ? { label: "WhatsApp", value: `+${config.whatsapp}`, href: wa }
-            : null,
-          config.telefono
-            ? {
-                label: "Teléfono",
-                value: config.telefono,
-                href: telHref(config.telefono),
-              }
-            : null,
-          config.email
-            ? {
-                label: "Correo",
-                value: config.email,
-                href: `mailto:${config.email}`,
-              }
-            : null,
-          config.direccion
-            ? { label: "Dirección", value: config.direccion }
-            : null,
-          config.ciudad ? { label: "Cobertura", value: config.ciudad } : null,
-          config.horario ? { label: "Horario", value: config.horario } : null,
-        ]}
-      />
+      <ContactoResumen datos={datosContacto(config)} />
     </>
   );
 }
 
-type Dato = { label: string; value: string; href?: string } | null;
-
-function ContactoResumen({ datos }: { datos: Dato[] }) {
-  const items = datos.filter((d): d is NonNullable<Dato> => d !== null);
+function ContactoResumen({ datos: items }: { datos: DatoContacto[] }) {
   if (items.length === 0) return null;
   return (
     <section className="bg-bone py-20 lg:py-28">
@@ -339,7 +308,13 @@ function ContactoResumen({ datos }: { datos: Dato[] }) {
               <dt className="eyebrow text-muted">{d.label}</dt>
               <dd className="mt-3 truncate text-lg">
                 {d.href ? (
-                  <a href={d.href} className="hover:text-walnut">
+                  <a
+                    href={d.href}
+                    className="hover:text-walnut"
+                    {...(d.externo
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
                     {d.value}
                   </a>
                 ) : (

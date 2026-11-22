@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Galeria } from "@/components/Galeria";
+import { Videos } from "@/components/Videos";
 import { Container, CtaBanner, PageHeader } from "@/components/ui";
 import { cotizarHref } from "@/lib/contacto";
 import { fotosData } from "@/lib/image";
 import {
   getCategorias,
-  getConfig,
   getFotosPorSeccion,
   getPagina,
+  getVideosPorSeccion,
 } from "@/sanity/data";
 import type { Foto } from "@/sanity/types";
 
@@ -18,16 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MobiliarioPage() {
-  const [pagina, categorias, proyectos, config] = await Promise.all([
+  const [pagina, categorias, proyectos] = await Promise.all([
     getPagina("pagina-mobiliario"),
     getCategorias("mobiliario"),
     getFotosPorSeccion("mobiliario"),
-    getConfig(),
   ]);
-  const cotizar = cotizarHref(
-    config,
-    "Hola, quiero cotizar un mueble a medida."
-  );
+  const videos = await getVideosPorSeccion("mobiliario", pagina?.videos);
 
   // Group every furniture photo (across all projects) by its work category.
   const porCategoria = new Map<string, Foto[]>();
@@ -91,14 +88,13 @@ export default async function MobiliarioPage() {
         </section>
       ))}
 
+      <Videos videos={videos} titulo="Mobiliario en video" />
+
       <CtaBanner
         titulo="Muebles a la medida de su espacio"
         texto="Cuéntenos qué necesita: closet, vestidor, mueble de baño, estudio o revestimiento."
-        boton={
-          cotizar.externo ? "Cotizar por WhatsApp" : "Solicitar cotización"
-        }
-        href={cotizar.href}
-        externo={cotizar.externo}
+        boton="Cotizar mobiliario"
+        href={cotizarHref("mobiliario")}
         imagen={pagina?.imagen}
       />
     </>

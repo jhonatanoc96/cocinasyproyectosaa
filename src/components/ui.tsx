@@ -249,7 +249,7 @@ export function CtaBanner({
   texto?: string;
   boton?: string;
   href: string;
-  externo: boolean;
+  externo?: boolean;
   imagen?: Foto;
 }) {
   return (
@@ -276,8 +276,7 @@ export function CtaBanner({
           )}
           <div className="mt-10">
             <Boton href={href} externo={externo} variante="claro">
-              {externo && <WhatsAppIcon />}
-              {boton ?? "Cotizar proyecto"}
+              {boton ?? "Cotizar proyecto"} <Flecha />
             </Boton>
           </div>
         </div>
