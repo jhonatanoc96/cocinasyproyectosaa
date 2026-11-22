@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { PortableText } from "next-sanity";
 import { Galeria } from "@/components/Galeria";
 import { SanityImg } from "@/components/SanityImg";
@@ -34,9 +35,37 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProyectoPage({
+/**
+ * params are awaited inside <Suspense> so Next can build the generic App Shell
+ * for /proyectos/[slug] (needed with Partial Prefetching, e.g. after a CMS
+ * publish revalidates the route or for a project created after the build).
+ */
+export default function ProyectoPage(props: PageProps<"/proyectos/[slug]">) {
+  return (
+    <Suspense fallback={<ProyectoCargando />}>
+      <ProyectoContenido params={props.params} />
+    </Suspense>
+  );
+}
+
+function ProyectoCargando() {
+  return (
+    <section className="bg-bone pt-28 pb-16 lg:pt-36 lg:pb-24" aria-busy="true">
+      <Container className="grid items-end gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="space-y-6 lg:col-span-6">
+          <div className="h-3 w-40 animate-pulse bg-stone" />
+          <div className="h-24 w-full animate-pulse bg-stone" />
+          <div className="h-16 w-3/4 animate-pulse bg-stone" />
+        </div>
+        <div className="aspect-[4/5] animate-pulse bg-stone lg:col-span-6 lg:aspect-[5/6]" />
+      </Container>
+    </section>
+  );
+}
+
+async function ProyectoContenido({
   params,
-}: PageProps<"/proyectos/[slug]">) {
+}: Pick<PageProps<"/proyectos/[slug]">, "params">) {
   const { slug } = await params;
   const [proyecto, vecinos] = await Promise.all([
     getProyecto(slug),

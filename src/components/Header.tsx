@@ -11,15 +11,26 @@ export interface HeaderProps {
   cotizar: string;
 }
 
-export function Header({ nombre, cotizar }: HeaderProps) {
+/** Reads the pathname; render inside <Suspense> (the dynamic-route App Shell
+ *  doesn't know it yet). The fallback is `<HeaderView pathname={null} />`. */
+export function Header(props: HeaderProps) {
   const pathname = usePathname();
+  return <HeaderView {...props} pathname={pathname} />;
+}
+
+export function HeaderView({
+  nombre,
+  cotizar,
+  pathname: ruta,
+}: HeaderProps & { pathname: string | null }) {
+  const pathname = ruta ?? "";
   const [scrolled, setScrolled] = useState(false);
   // The menu remembers the route it was opened on, so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
   const setOpen = (fn: (v: boolean) => boolean) =>
     setOpenOn(fn(open) ? pathname : null);
-  const overHero = pathname === "/" && !scrolled && !open;
+  const overHero = ruta === "/" && !scrolled && !open;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -69,7 +80,7 @@ export function Header({ nombre, cotizar }: HeaderProps) {
           aria-label="Principal"
         >
           {NAV.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = ruta !== null && pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}

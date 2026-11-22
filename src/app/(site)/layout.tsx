@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
+import { Header, HeaderView } from "@/components/Header";
 import { WhatsAppIcon } from "@/components/ui";
 import { cotizarHref, whatsappUrl } from "@/lib/contacto";
 import { hasAsset, imageUrl } from "@/lib/image";
@@ -41,7 +42,13 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <span id="top" />
-      <Header nombre={config.nombre} cotizar={cotizarHref()} />
+      <Suspense
+        fallback={
+          <HeaderView nombre={config.nombre} cotizar={cotizarHref()} pathname={null} />
+        }
+      >
+        <Header nombre={config.nombre} cotizar={cotizarHref()} />
+      </Suspense>
       <main>{children}</main>
       <Footer config={config} categorias={[...cocinas, ...mobiliario]} />
       {wa && (
