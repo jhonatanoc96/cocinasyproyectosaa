@@ -32,6 +32,17 @@ Los cambios publicados aparecen en el sitio en ~1 minuto.
 inicial. Es idempotente. La foto `media/fotos/foto-19.jpg` es una nota manuscrita con precios y
 **no se publica** a propósito.
 
+## Servidor (Lightsail)
+
+- Ubuntu 24.04 en `16.59.173.224`: Node 24, nginx (80/443) → `next start` en `127.0.0.1:3000`
+  como servicio systemd `cocinas`. Variables en `/home/ubuntu/cocinasyproyectosaa/.env.production`
+  (sin tokens).
+- SSL de Let's Encrypt sobre la IP (perfil `shortlived`, ~6 días), renovado por el timer
+  `snap.certbot.renew` y recarga nginx al renovar. Con dominio: `certbot --nginx -d dominio`.
+- **Desplegar:** `npm run deploy`. Compila en local (el servidor tiene 1 GB de RAM y `next build` no
+  cabe) y sube el resultado. Requiere cambios commiteados y la llave `.pem` en la raíz (ignorada por git).
+- Logs: `sudo journalctl -u cocinas -f`.
+
 ## Pendiente antes de publicar
 
 - Número de WhatsApp y datos de contacto en *Configuración del sitio* (sin WhatsApp, los botones
